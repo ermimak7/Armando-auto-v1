@@ -4,9 +4,15 @@
     <meta charset="UTF-8">
     <title>Abay Technical & Trading s.c | Tender System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-auth-compat.js"></script>
+    <!-- Export Libraries (Excel & PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
     
     <script>
@@ -25,17 +31,16 @@
         const googleProvider = new firebase.auth.GoogleAuthProvider();
 
         tailwind.config = {
-            theme: { extend: { colors: { bg: '#0f1419', card: '#1a2028', border: '#2d3640', fg: '#e8eaed', muted: '#8b949e', accent: '#d4a853', success: '#3fb950', warning: '#d29922', danger: '#f85149' } } }
+            theme: { extend: { colors: { bg: '#0f1419', card: '#1a2028', border: '#2d3640', fg: '#e8eaed', accent: '#d4a853', success: '#3fb950', warning: '#d29922', danger: '#f85149' } } }
         }
     </script>
     <style>
         * { font-family: 'DM Sans', sans-serif; }
-        h1, h2, h3, .display-font { font-family: 'Playfair Display', serif; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
         body { background: #0f1419; color: #e8eaed; scroll-behavior: smooth; }
         .status-won { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 1px solid #3fb950; }
         .status-pending { background: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid #d29922; }
         .status-participated { background: rgba(88, 166, 255, 0.15); color: #58a6ff; border: 1px solid #58a6ff; }
-        .status-canceled, .status-lost { background: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid #f85149; }
         .section-card { background: #1a2028; border: 1px solid #2d3640; border-radius: 0.75rem; overflow: hidden; }
         input, select, textarea { background: #0f1419; border: 1px solid #2d3640; border-radius: 6px; padding: 10px; width: 100%; outline: none; margin-top: 4px; color: #e8eaed; font-size: 13px; }
         label { text-transform: uppercase; font-size: 10px; font-weight: bold; color: #8b949e; }
@@ -43,7 +48,7 @@
 </head>
 <body>
 
-    <!-- AUTHENTICATION SCREEN -->
+    <!-- AUTH SCREEN -->
     <div id="loginScreen" class="fixed inset-0 z-[100] bg-bg flex items-center justify-center p-4">
         <div class="bg-card border border-border p-8 rounded-2xl w-full max-w-md shadow-2xl">
             <div class="text-center mb-6">
@@ -58,22 +63,10 @@
             
             <div class="space-y-4">
                 <div><label>Email</label><input type="email" id="authEmail"></div>
-                <div id="passField"><label>Password</label><input type="password" id="authPass"></div>
-                
-                <button onclick="handleAuth()" id="authBtn" class="w-full bg-accent text-bg font-bold py-3 rounded-xl hover:opacity-90">Sign In</button>
-                
-                <div class="text-center">
-                    <button onclick="forgotPassword()" class="text-[10px] text-muted hover:text-accent font-bold uppercase tracking-widest">Forgot Password?</button>
-                </div>
-
-                <div class="relative py-2">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-border"></div></div>
-                    <div class="relative flex justify-center text-[10px] uppercase font-bold text-muted"><span class="bg-card px-2">Or</span></div>
-                </div>
-
-                <button onclick="loginWithGoogle()" class="w-full bg-white text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-100 transition-all text-sm">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-4 h-4"> Sign in with Google
-                </button>
+                <div><label>Password</label><input type="password" id="authPass"></div>
+                <button onclick="handleAuth()" class="w-full bg-accent text-bg font-bold py-3 rounded-xl hover:opacity-90">Sign In</button>
+                <div class="text-center"><button onclick="forgotPassword()" class="text-[10px] text-muted hover:text-accent font-bold uppercase tracking-widest">Forgot Password?</button></div>
+                <button onclick="loginWithGoogle()" class="w-full bg-white text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-100 transition-all text-sm"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-4 h-4"> Google Login</button>
                 <p id="authError" class="text-danger text-[10px] text-center mt-4 hidden"></p>
             </div>
         </div>
@@ -94,13 +87,9 @@
         </header>
 
         <main class="max-w-7xl mx-auto px-4 mt-8 pb-12">
-            <!-- Analysis Dashboard -->
             <div id="analysisGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"></div>
-            <!-- 8-Stats Grid -->
             <div id="statsGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8 text-center"></div>
-            <!-- Tables List -->
             <div id="tenderSections" class="space-y-8"></div>
-            <!-- Bottom Summary Table -->
             <section class="section-card mt-12 p-6">
                 <h3 class="text-xs font-bold text-accent uppercase tracking-widest mb-4">Performance Summary</h3>
                 <table class="w-full text-[11px]"><tbody id="summaryTableBody" class="divide-y divide-border/30"></tbody></table>
@@ -129,26 +118,21 @@
                 <div><label>Status</label><select id="tStatus"><option>Pending</option><option>Participated</option><option>Won</option><option>Lost</option></select></div>
                 <div><label>Reporting Status</label><select id="tRepStatus"><option>Pending</option><option>Canceled</option></select></div>
                 <div class="col-span-2"><label>Remark</label><textarea id="tRemark" rows="2"></textarea></div>
-                <div class="col-span-2 flex justify-end pt-4 border-t border-border">
-                    <button type="submit" id="saveBtn" class="bg-accent text-bg px-10 py-2 rounded-lg font-bold shadow-lg transition-transform active:scale-95">Save Tender</button>
-                </div>
+                <div class="col-span-2 flex justify-end pt-4 border-t border-border"><button type="submit" class="bg-accent text-bg px-10 py-2 rounded-lg font-bold shadow-lg">Save Record</button></div>
             </form>
         </div>
     </div>
 
-    <!-- NOTIFICATION MODAL -->
+    <!-- EMAIL MODAL -->
     <div id="emailModal" class="fixed inset-0 bg-black/90 z-[120] hidden flex items-center justify-center p-4">
         <div class="bg-card border border-border rounded-xl w-full max-w-md p-6">
-            <h3 class="text-sm font-bold text-accent mb-4 uppercase tracking-widest">Gmail Notifications</h3>
+            <h3 class="text-sm font-bold text-accent mb-4 uppercase tracking-widest">Gmail Config</h3>
             <div class="space-y-4">
                 <div><label>Gmail Address</label><input type="email" id="smtpUser"></div>
                 <div><label>App Password</label><input type="password" id="smtpPass" placeholder="16-character code"></div>
                 <div><label>Recipient Email</label><input type="email" id="smtpTo"></div>
             </div>
-            <div class="flex justify-end gap-2 mt-6">
-                <button onclick="document.getElementById('emailModal').classList.add('hidden')" class="text-xs text-muted font-bold mr-4">Close</button>
-                <button onclick="saveConfig()" class="bg-accent text-bg px-4 py-1.5 rounded text-xs font-bold">Save</button>
-            </div>
+            <div class="flex justify-end mt-6"><button onclick="saveConfig()" class="bg-accent text-bg px-4 py-1.5 rounded text-xs font-bold">Save Settings</button></div>
         </div>
     </div>
 
@@ -156,27 +140,48 @@
         let isLogin = true;
         let tenderData = { tenders: [], config: {} };
 
-        // --- AUTH ---
-        async function forgotPassword() {
-            const email = document.getElementById('authEmail').value;
-            if(!email) return alert("Please type your email first.");
-            try { await auth.sendPasswordResetEmail(email); alert("Password reset link sent to your email!"); } catch (e) { alert(e.message); }
+        // --- EXPORT LOGIC ---
+        function exportToExcel() {
+            const worksheet = XLSX.utils.json_to_sheet(tenderData.tenders);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Tenders");
+            XLSX.writeFile(workbook, "Abay_Tender_Report.xlsx");
         }
 
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'pt');
+            doc.text("Abay Technical & Trading s.c - Tender Report", 40, 40);
+            
+            const rows = tenderData.tenders.map(t => [t.customer, t.no, t.product, t.qty, t.value, t.status, t.date]);
+            doc.autoTable({
+                head: [['Customer', 'Tender No', 'Product', 'Qty', 'Value', 'Status', 'Deadline']],
+                body: rows,
+                startY: 60
+            });
+            doc.save("Abay_Tender_Report.pdf");
+        }
+
+        // --- AUTH ---
         function toggleAuth(login) {
             isLogin = login;
             document.getElementById('authTitle').innerText = login ? "Abay Technical" : "Create Account";
-            document.getElementById('authBtn').innerText = login ? "Sign In" : "Register";
             document.getElementById('tabLogin').className = login ? "flex-1 pb-2 border-b-2 border-accent text-accent font-bold" : "flex-1 pb-2 border-b-2 border-transparent text-muted";
             document.getElementById('tabRegister').className = !login ? "flex-1 pb-2 border-b-2 border-accent text-accent font-bold" : "flex-1 pb-2 border-b-2 border-transparent text-muted";
         }
 
         async function handleAuth() {
-            const email = document.getElementById('authEmail').value, pass = document.getElementById('authPass').value, err = document.getElementById('authError');
+            const email = document.getElementById('authEmail').value, pass = document.getElementById('authPass').value;
             try {
                 if(isLogin) await auth.signInWithEmailAndPassword(email, pass);
                 else await auth.createUserWithEmailAndPassword(email, pass);
-            } catch (e) { err.innerText = e.message; err.classList.remove('hidden'); }
+            } catch (e) { alert(e.message); }
+        }
+
+        async function forgotPassword() {
+            const email = document.getElementById('authEmail').value;
+            if(!email) return alert("Enter email first");
+            try { await auth.sendPasswordResetEmail(email); alert("Reset link sent!"); } catch (e) { alert(e.message); }
         }
 
         async function loginWithGoogle() { try { await auth.signInWithPopup(googleProvider); } catch (e) { alert(e.message); } }
@@ -193,22 +198,17 @@
             }
         });
 
-        // --- DATA ---
+        // --- APP LOGIC ---
         function initApp() {
             db.collection("tenders").onSnapshot(snap => {
                 tenderData.tenders = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 render();
-                checkDeadlines();
             });
-            const savedConfig = localStorage.getItem('abay_config');
-            if(savedConfig) tenderData.config = JSON.parse(savedConfig);
-            
-            // Listen for Electron Menu Actions
             if(window.electronAPI) {
-                window.electronAPI.onMenuAction(a => { if(a==='save') alert("Cloud auto-saves data, local backup complete."); });
-                window.electronAPI.onExportRequest(p => {
-                    const csv = ["Customer,Contact,No,Date,Status,Value", ...tenderData.tenders.map(t => `${t.customer},${t.contact},${t.no},${t.date},${t.status},${t.value}`)].join("\n");
-                    window.electronAPI.writeCSV({ path: p, content: csv });
+                window.electronAPI.onMenuAction(action => {
+                    if(action === 'save') alert("Cloud auto-saves. Backup triggered.");
+                    if(action === 'export-excel') exportToExcel();
+                    if(action === 'export-pdf') exportToPDF();
                 });
             }
         }
@@ -228,14 +228,10 @@
                 value: document.getElementById('tVal').value,
                 status: document.getElementById('tStatus').value,
                 repStatus: document.getElementById('tRepStatus').value,
-                remark: document.getElementById('tRemark').value,
-                emailed: false,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                remark: document.getElementById('tRemark').value
             };
-            try {
-                await db.collection("tenders").add(entry);
-                closeModal();
-            } catch (err) { alert(err.message); }
+            await db.collection("tenders").add(entry);
+            closeModal();
         }
 
         function render() {
@@ -243,11 +239,13 @@
             const totalCPO = t.reduce((a, c) => a + (Number(c.cpoAmount) || 0), 0);
             const won = t.filter(x=>x.status==='Won').length;
 
+            // Analysis
             document.getElementById('analysisGrid').innerHTML = `
-                <div class="section-card p-5 border-l-4 border-accent"><div>TOTAL CPO CAPITAL</div><div class="text-2xl font-bold text-accent">${totalCPO.toLocaleString()}</div></div>
+                <div class="section-card p-5 border-l-4 border-accent"><div>TOTAL CPO (ETB)</div><div class="text-2xl font-bold text-accent">${totalCPO.toLocaleString()}</div></div>
                 <div class="section-card p-5 border-l-4 border-success"><div>SUCCESS RATE</div><div class="text-2xl font-bold text-success">${Math.round((won/t.length || 0)*100)}%</div></div>
-                <div class="section-card p-5 border-l-4 border-warning"><div>PENDING</div><div class="text-2xl font-bold text-warning">${t.filter(x=>x.status==='Pending').length}</div></div>`;
+                <div class="section-card p-5 border-l-4 border-warning"><div>PENDING</div><div class="text-2xl font-bold text-warning">${t.filter(x=>x.status==='Pending').length} Tenders</div></div>`;
 
+            // Stats Grid
             const stats = [
                 { label: 'Total', val: t.length, color: 'fg' }, { label: 'Participated', val: t.filter(x=>x.status==='Participated').length, color: 'success' },
                 { label: 'Not Part.', val: 0, color: 'muted' }, { label: 'Pending', val: t.filter(x=>x.status==='Pending').length, color: 'warning' },
@@ -256,6 +254,7 @@
             ];
             document.getElementById('statsGrid').innerHTML = stats.map(s => `<div class="bg-card border border-border p-3 rounded-xl"><div class="text-xl font-bold text-${s.color}">${s.val}</div><div class="text-[9px] uppercase font-bold text-muted mt-1">${s.label}</div></div>`).join('');
 
+            // Tables
             const groups = {};
             t.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(x => {
                 const m = new Date(x.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -275,6 +274,7 @@
                             </tr>`).join('')}
                     </tbody></table></div>`).join('');
 
+            // Summary Table
             const summary = {};
             t.forEach(x => {
                 const m = new Date(x.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -283,29 +283,14 @@
                 summary[m].val += Number(x.value) || 0;
             });
             document.getElementById('summaryTableBody').innerHTML = Object.entries(summary).map(([m, s]) => `
-                <tr><td class="py-4 font-bold text-fg">${m}</td><td class="py-4 text-center font-bold">${s.total}</td><td class="py-4 text-center text-success font-bold">${s.part}</td><td class="py-4 text-center font-bold">${s.won}</td><td class="py-4 text-right text-accent font-bold">${s.val.toLocaleString()}</td></tr>`).join('');
-        }
-
-        async function checkDeadlines() {
-            if (!tenderData.config.user || !window.electronAPI) return;
-            const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-            for (let t of tenderData.tenders) {
-                if (t.status === 'Pending' && new Date(t.date) <= tomorrow && !t.emailed) {
-                    window.electronAPI.sendEmail({ config: tenderData.config, tender: t });
-                    await db.collection("tenders").doc(t.id).update({ emailed: true });
-                }
-            }
+                <tr><td class="py-4 font-bold text-fg">${m}</td><td class="py-4 text-center">${s.total}</td><td class="py-4 text-center text-success">${s.part}</td><td class="py-4 text-center font-bold">${s.won}</td><td class="py-4 text-right text-accent font-bold">${s.val.toLocaleString()}</td></tr>`).join('');
         }
 
         function toggleCPO() { document.getElementById('cpoWrap').classList.toggle('hidden', document.getElementById('tCPO').value === 'No'); }
         function openModal() { document.getElementById('mainTenderForm').reset(); toggleCPO(); document.getElementById('tenderModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('tenderModal').classList.add('hidden'); }
-        function saveConfig() {
-            tenderData.config = { user: document.getElementById('smtpUser').value, pass: document.getElementById('smtpPass').value, to: document.getElementById('smtpTo').value };
-            localStorage.setItem('abay_config', JSON.stringify(tenderData.config));
-            document.getElementById('emailModal').classList.add('hidden');
-        }
         async function deleteTender(id) { if(confirm("Delete record?")) await db.collection("tenders").doc(id).delete(); }
+        function saveConfig() { document.getElementById('emailModal').classList.add('hidden'); }
     </script>
 </body>
 </html>
