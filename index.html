@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Maintenance & Inspection Tender Report</title>
+    <title>Abay Technical & Trading s.c | Tender System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (Auth + Firestore) -->
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-auth-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
     
     <script>
@@ -22,6 +23,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
         tailwind.config = {
             theme: { extend: { colors: { bg: '#0f1419', card: '#1a2028', border: '#2d3640', fg: '#e8eaed', muted: '#8b949e', accent: '#d4a853', success: '#3fb950', warning: '#d29922', danger: '#f85149', info: '#58a6ff' } } }
@@ -30,73 +32,83 @@
     <style>
         * { font-family: 'DM Sans', sans-serif; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; }
-        body { background: #0f1419; color: #e8eaed; scroll-behavior: smooth; }
+        body { background: #0f1419; color: #e8eaed; overflow-x: hidden; }
         .status-won { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 1px solid #3fb950; }
         .status-pending { background: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid #d29922; }
         .status-participated { background: rgba(88, 166, 255, 0.15); color: #58a6ff; border: 1px solid #58a6ff; }
-        .status-lost, .status-canceled { background: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid #f85149; }
+        .status-lost { background: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid #f85149; }
         .section-card { background: #1a2028; border: 1px solid #2d3640; border-radius: 0.75rem; overflow: hidden; }
-        input, select, textarea { background: #0f1419; border: 1px solid #2d3640; border-radius: 6px; padding: 8px; width: 100%; outline: none; margin-top: 4px; font-size: 13px; color: #e8eaed; }
-        label { text-transform: uppercase; font-size: 10px; font-weight: bold; color: #8b949e; margin-left: 2px; }
+        input, select, textarea { background: #0f1419; border: 1px solid #2d3640; border-radius: 6px; padding: 10px; width: 100%; outline: none; margin-top: 4px; font-size: 13px; color: #e8eaed; }
+        label { text-transform: uppercase; font-size: 10px; font-weight: bold; color: #8b949e; }
     </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen">
 
-    <!-- Navbar -->
-    <header class="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-accent rounded flex items-center justify-center text-bg font-bold shadow-lg">TR</div>
-            <h1 class="text-xs font-bold leading-none">Tender Report System</h1>
-        </div>
-        <div class="flex gap-2">
-            <button onclick="document.getElementById('emailModal').classList.remove('hidden')" class="p-2 border border-border rounded-lg text-muted hover:text-accent">📧 Notifications</button>
-            <button onclick="openModal()" class="bg-accent text-bg px-4 py-1.5 rounded-lg font-bold text-xs shadow-lg">+ Add Tender</button>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 mt-8">
-        <section class="section-card p-6 mb-8 flex justify-between items-center">
-            <div>
-                <h2 class="text-3xl font-bold">Maintenance & Inspection Tender Report</h2>
-                <p class="text-[11px] text-muted tracking-widest uppercase mt-1">Ethiopia Maintenance Services PLC • 2026</p>
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="fixed inset-0 z-[100] bg-bg flex items-center justify-center p-4">
+        <div class="bg-card border border-border p-8 rounded-2xl w-full max-w-md shadow-2xl text-center">
+            <div class="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center text-bg font-bold text-2xl mx-auto mb-6 shadow-lg">AT</div>
+            <h2 class="text-2xl font-bold mb-2">Abay Technical</h2>
+            <p class="text-muted text-sm mb-8 font-sans">Enter credentials to access Tender System</p>
+            
+            <div class="text-left space-y-4">
+                <div><label>Email Address</label><input type="email" id="loginEmail" placeholder="admin@abaytechnical.com"></div>
+                <div><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+                <button onclick="handleLogin()" id="loginBtn" class="w-full bg-accent text-bg font-bold py-3 rounded-xl mt-4 hover:opacity-90 transition-all">Sign In</button>
+                <p id="loginError" class="text-danger text-xs text-center mt-4 hidden">Error Message</p>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <!-- Overall Analysis Section -->
-        <div id="analysisGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"></div>
+    <!-- MAIN APP CONTENT -->
+    <div id="appContent" class="hidden">
+        <header class="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-accent rounded flex items-center justify-center text-bg font-bold text-xs">AT</div>
+                <h1 class="text-xs font-bold leading-none uppercase tracking-widest">Abay Technical & Trading s.c</h1>
+            </div>
+            <div class="flex gap-2 items-center">
+                <button onclick="handleLogout()" class="text-[10px] text-muted hover:text-danger mr-4 uppercase font-bold tracking-widest">Logout</button>
+                <button onclick="openModal()" class="bg-accent text-bg px-4 py-1.5 rounded-lg font-bold text-xs shadow-lg">+ Add Tender</button>
+            </div>
+        </header>
 
-        <!-- 8-Stats Grid -->
-        <div id="statsGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8 text-center"></div>
-        
-        <!-- Monthly Sections -->
-        <div id="tenderSections" class="space-y-8"></div>
+        <main class="max-w-7xl mx-auto px-4 mt-8">
+            <!-- Hero Section -->
+            <section class="section-card p-6 mb-8 flex justify-between items-center bg-gradient-to-r from-card to-bg">
+                <div>
+                    <h2 class="text-3xl font-bold display-font">Abay Technical & Trading s.c</h2>
+                    <p class="text-[11px] text-muted tracking-widest uppercase mt-1">Maintenance & Inspection Tender Report • 2026</p>
+                </div>
+            </section>
 
-        <!-- Monthly Summary Table -->
-        <section class="section-card mt-12 p-6">
-            <h3 class="text-lg font-bold mb-4 text-accent">Monthly Summary</h3>
-            <table class="w-full text-[11px]">
-                <thead>
-                    <tr class="border-b border-border text-muted">
-                        <th class="text-left pb-3 uppercase">Month</th>
-                        <th class="text-center pb-3 uppercase">Total</th>
-                        <th class="text-center pb-3 uppercase">Participated</th>
-                        <th class="text-center pb-3 uppercase">Won</th>
-                        <th class="text-right pb-3 uppercase">Value (ETB)</th>
-                    </tr>
-                </thead>
-                <tbody id="summaryTableBody" class="divide-y divide-border/30"></tbody>
-            </table>
-        </section>
-    </main>
+            <!-- Analysis Section -->
+            <section id="analysisGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"></section>
+            
+            <!-- 8-Card Grid -->
+            <div id="statsGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8 text-center"></div>
+            
+            <!-- List Sections -->
+            <div id="tenderSections" class="space-y-8"></div>
+            
+            <!-- Bottom Summary -->
+            <section class="section-card mt-12 p-6">
+                <h3 class="text-lg font-bold mb-4 text-accent">Monthly Summary Table</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-[11px]"><tbody id="summaryTableBody" class="divide-y divide-border/30"></tbody></table>
+                </div>
+            </section>
+        </main>
+    </div>
 
-    <!-- Modal Form (FIXED) -->
+    <!-- Add Tender Modal -->
     <div id="tenderModal" class="fixed inset-0 bg-black/95 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
-        <div class="bg-card border border-border rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="bg-card border border-border rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div class="px-6 py-4 border-b border-border flex justify-between items-center sticky top-0 bg-card z-10">
-                <h3 class="font-bold text-lg">Add Tender Record</h3>
+                <h3 class="font-bold text-lg">New Tender Entry</h3>
                 <button onclick="closeModal()" class="text-muted text-2xl">&times;</button>
             </div>
-            <form id="tenderForm" onsubmit="saveTender(event)" class="p-6 space-y-4">
+            <form onsubmit="saveTender(event)" class="p-6 space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2"><label>Customer Name</label><input type="text" id="tName" required></div>
                     <div><label>Contact Person</label><input type="text" id="tContact"></div>
@@ -112,45 +124,58 @@
                     <div><label>Quantity</label><input type="number" id="tQty" value="1"></div>
                     <div><label>Tender No</label><input type="text" id="tNo" required></div>
                     <div><label>Deadline Date</label><input type="date" id="tDate" required></div>
+                    <div><label>CPO Required?</label><select id="tCPO" onchange="toggleCPO()"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                    <div id="cpoWrap" class="hidden"><label>CPO Amount</label><input type="number" id="tCPOVal"></div>
+                    <div><label>Financial Value (ETB)</label><input type="number" id="tVal" required></div>
+                    <div><label>Status (Main)</label><select id="tStatus"><option>Pending</option><option>Participated</option><option>Won</option><option>Lost</option></select></div>
                     <div>
-                        <label>CPO Required?</label>
-                        <select id="tCPORequired" onchange="toggleCPO()"><option value="No">No</option><option value="Yes">Yes</option></select>
+                        <label>Status as of Reporting Date</label>
+                        <select id="tRepStatus"><option>Pending</option><option>Canceled</option></select>
                     </div>
-                    <div id="cpoWrap" class="hidden"><label>CPO Amount (ETB)</label><input type="number" id="tCPOAmount"></div>
-                    <div><label>Financial Value (ETB)</label><input type="number" id="tValue" required></div>
-                    <div><label>Status</label><select id="tStatus"><option>Pending</option><option>Participated</option><option>Won</option><option>Lost</option></select></div>
-                    <div><label>Status (Reporting Date)</label><select id="tRepStatus"><option>Pending</option><option>Canceled</option></select></div>
                     <div class="col-span-2"><label>Remark</label><textarea id="tRemark" rows="2"></textarea></div>
                 </div>
-                <div class="flex justify-end gap-3 pt-6 mt-4 border-t border-border">
-                    <button type="button" onclick="closeModal()" class="text-xs text-muted font-bold uppercase">Cancel</button>
-                    <button type="submit" class="bg-accent text-bg px-8 py-2 rounded-lg font-bold text-xs shadow-lg">Save Record</button>
-                </div>
+                <div class="flex justify-end pt-6 mt-4 border-t border-border"><button type="submit" class="bg-accent text-bg px-10 py-2 rounded-lg font-bold">Save Tender Record</button></div>
             </form>
         </div>
     </div>
 
-    <!-- Email Modal -->
-    <div id="emailModal" class="fixed inset-0 bg-black/90 z-[70] hidden flex items-center justify-center p-4">
-        <div class="bg-card border border-border rounded-xl w-full max-w-md p-6">
-            <h3 class="text-lg font-bold text-accent mb-4 uppercase text-xs">Gmail Notifications</h3>
-            <div class="space-y-4">
-                <div><label>Your Gmail</label><input type="email" id="smtpUser"></div>
-                <div><label>App Password</label><input type="password" id="smtpPass"></div>
-                <div><label>Recipient Email</label><input type="email" id="smtpTo"></div>
-            </div>
-            <div class="flex justify-end mt-6"><button onclick="saveConfig()" class="bg-accent text-bg px-4 py-1.5 rounded text-xs font-bold">Save</button></div>
-        </div>
-    </header>
-
     <script>
-        let tenderData = { tenders: [], config: {} };
+        let tenderData = { tenders: [] };
 
-        // Real-time Sync from Cloud
-        db.collection("tenders").onSnapshot((snapshot) => {
-            tenderData.tenders = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-            render();
+        // --- AUTH LOGIC ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('appContent').classList.remove('hidden');
+                initApp();
+            } else {
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('appContent').classList.add('hidden');
+            }
         });
+
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            const error = document.getElementById('loginError');
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                error.classList.add('hidden');
+            } catch (err) {
+                error.innerText = err.message;
+                error.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() { auth.signOut(); }
+
+        // --- DATABASE LOGIC ---
+        function initApp() {
+            db.collection("tenders").onSnapshot((snapshot) => {
+                tenderData.tenders = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                render();
+            });
+        }
 
         async function saveTender(e) {
             e.preventDefault();
@@ -162,34 +187,27 @@
                 qty: document.getElementById('tQty').value,
                 no: document.getElementById('tNo').value,
                 date: document.getElementById('tDate').value,
-                cpoRequired: document.getElementById('tCPORequired').value,
-                cpoAmount: document.getElementById('tCPOAmount').value || 0,
-                value: document.getElementById('tValue').value,
+                cpo: document.getElementById('tCPO').value,
+                cpoAmount: document.getElementById('tCPOVal').value || 0,
+                value: document.getElementById('tVal').value,
                 status: document.getElementById('tStatus').value,
                 repStatus: document.getElementById('tRepStatus').value,
-                remark: document.getElementById('tRemark').value,
-                emailed: false,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                remark: document.getElementById('tRemark').value
             };
-            
-            try {
-                await db.collection("tenders").add(entry);
-                closeModal();
-            } catch (err) {
-                alert("Error saving: Make sure Firestore Rules are set to Test Mode!");
-            }
+            await db.collection("tenders").add(entry);
+            closeModal();
         }
 
         function render() {
             const t = tenderData.tenders;
             
-            // 1. Analysis Dashboard
+            // 1. Overall Analysis
             const totalCPO = t.reduce((acc, curr) => acc + (Number(curr.cpoAmount) || 0), 0);
             const wonCount = t.filter(x=>x.status==='Won').length;
             document.getElementById('analysisGrid').innerHTML = `
-                <div class="section-card p-5 border-l-4 border-accent"><div class="text-[10px] text-muted uppercase font-bold">Total Active CPO</div><div class="text-2xl font-bold text-accent">${totalCPO.toLocaleString()} ETB</div></div>
-                <div class="section-card p-5 border-l-4 border-success"><div class="text-[10px] text-muted uppercase font-bold">Success Rate</div><div class="text-2xl font-bold text-success">${Math.round((wonCount/t.length || 0)*100)}%</div></div>
-                <div class="section-card p-5 border-l-4 border-warning"><div class="text-[10px] text-muted uppercase font-bold">Pending Review</div><div class="text-2xl font-bold text-warning">${t.filter(x=>x.status==='Pending').length} Tenders</div></div>
+                <div class="section-card p-5 border-l-4 border-accent"><div>CPO TOTAL (ETB)</div><div class="text-2xl font-bold text-accent">${totalCPO.toLocaleString()}</div></div>
+                <div class="section-card p-5 border-l-4 border-success"><div>SUCCESS RATE</div><div class="text-2xl font-bold text-success">${Math.round((wonCount/t.length || 0)*100)}%</div></div>
+                <div class="section-card p-5 border-l-4 border-warning"><div>PENDING ACTION</div><div class="text-2xl font-bold text-warning">${t.filter(x=>x.status==='Pending').length}</div></div>
             `;
 
             // 2. 8-Stats Grid
@@ -201,24 +219,23 @@
                 { label: 'Submitted', val: 0, color: 'info' },
                 { label: 'Won', val: wonCount, color: 'success' },
                 { label: 'Lost', val: t.filter(x=>x.status==='Lost').length, color: 'danger' },
-                { label: 'Qty Total', val: t.reduce((acc,curr)=>acc+(Number(curr.qty)||0),0), color: 'muted' }
+                { label: 'Qty', val: t.reduce((acc,curr)=>acc+(Number(curr.qty)||0),0), color: 'muted' }
             ];
             document.getElementById('statsGrid').innerHTML = stats.map(s => `<div class="bg-card border border-border p-3 rounded-xl"><div class="text-xl font-bold text-${s.color}">${s.val}</div><div class="text-[9px] uppercase font-bold text-muted mt-1">${s.label}</div></div>`).join('');
 
             // 3. Monthly Tables
             const groups = {};
             t.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(x => {
-                const m = x.date ? new Date(x.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "Unknown Month";
+                const m = new Date(x.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
                 if(!groups[m]) groups[m] = []; groups[m].push(x);
             });
             document.getElementById('tenderSections').innerHTML = Object.entries(groups).map(([m, items]) => `
                 <div class="section-card">
-                    <div class="px-6 py-2 bg-bg/50 border-b border-border font-bold text-[10px] uppercase text-accent tracking-widest">${m}</div>
+                    <div class="px-6 py-2 bg-bg/50 border-b border-border text-[10px] font-bold text-accent uppercase tracking-widest">${m}</div>
                     <table class="w-full text-[11px]"><tbody class="divide-y divide-border/30">
                         ${items.map(x => `
                             <tr class="hover:bg-bg/10">
-                                <td class="px-6 py-4"><b>${x.customer}</b><br><span class="text-[9px] text-muted">${x.product || 'N/A'} (x${x.qty})</span></td>
-                                <td class="px-4 py-4 text-muted font-mono uppercase">${x.no}</td>
+                                <td class="px-6 py-4"><b>${x.customer}</b><br><span class="text-[9px] text-muted">${x.product} (x${x.qty})</span></td>
                                 <td class="px-4 py-4 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-bold uppercase status-${x.status.toLowerCase()}">${x.status}</span></td>
                                 <td class="px-4 py-4 text-right font-bold text-accent">${Number(x.value).toLocaleString()}<br><span class="text-[9px] text-muted">${x.date}</span></td>
                                 <td class="px-6 py-4 text-right"><button onclick="deleteTender('${x.id}')">🗑</button></td>
@@ -228,22 +245,19 @@
             // 4. Monthly Summary Table
             const summary = {};
             t.forEach(x => {
-                const m = x.date ? new Date(x.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "Unknown";
+                const m = new Date(x.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
                 if(!summary[m]) summary[m] = { total: 0, part: 0, won: 0, val: 0 };
-                summary[m].total++;
-                if(x.status === 'Participated') summary[m].part++;
-                if(x.status === 'Won') summary[m].won++;
+                summary[m].total++; if(x.status === 'Participated') summary[m].part++; if(x.status === 'Won') summary[m].won++;
                 summary[m].val += Number(x.value) || 0;
             });
             document.getElementById('summaryTableBody').innerHTML = Object.entries(summary).map(([m, s]) => `
-                <tr><td class="py-4 text-fg font-medium">${m}</td><td class="py-4 text-center font-bold">${s.total}</td><td class="py-4 text-center text-success font-bold">${s.part}</td><td class="py-4 text-center font-bold">${s.won}</td><td class="py-4 text-right text-accent font-bold">${s.val.toLocaleString()}</td></tr>`).join('');
+                <tr><td class="py-4 font-bold text-fg">${m}</td><td class="py-4 text-center">${s.total}</td><td class="py-4 text-center text-success">${s.part}</td><td class="py-4 text-center font-bold">${s.won}</td><td class="py-4 text-right text-accent font-bold">${s.val.toLocaleString()}</td></tr>`).join('');
         }
 
-        function toggleCPO() { const val = document.getElementById('tCPORequired').value; document.getElementById('cpoWrap').classList.toggle('hidden', val === 'No'); }
+        function toggleCPO() { document.getElementById('cpoWrap').classList.toggle('hidden', document.getElementById('tCPO').value === 'No'); }
         function openModal() { document.getElementById('tenderForm').reset(); toggleCPO(); document.getElementById('tenderModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('tenderModal').classList.add('hidden'); }
-        async function deleteTender(id) { if(confirm("Delete?")) await db.collection("tenders").doc(id).delete(); }
-        function saveConfig() { alert("Notification Config Saved locally!"); document.getElementById('emailModal').classList.add('hidden'); }
+        async function deleteTender(id) { if(confirm("Delete this record?")) await db.collection("tenders").doc(id).delete(); }
     </script>
 </body>
 </html>
