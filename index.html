@@ -30,7 +30,7 @@
     </script>
     <style>
         * { font-family: 'DM Sans', sans-serif; }
-        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        h1, h2, h3, .display-font { font-family: 'Playfair Display', serif; }
         body { background: #0f1419; color: #e8eaed; scroll-behavior: smooth; }
         .status-won { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 1px solid #3fb950; }
         .status-pending { background: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid #d29922; }
@@ -43,7 +43,7 @@
 </head>
 <body>
 
-    <!-- AUTH SCREEN -->
+    <!-- AUTHENTICATION SCREEN -->
     <div id="loginScreen" class="fixed inset-0 z-[100] bg-bg flex items-center justify-center p-4">
         <div class="bg-card border border-border p-8 rounded-2xl w-full max-w-md shadow-2xl">
             <div class="text-center mb-6">
@@ -51,19 +51,18 @@
                 <h2 id="authTitle" class="text-2xl font-bold">Abay Technical</h2>
             </div>
             
-            <div class="flex border-b border-border mb-6" id="authTabs">
-                <button onclick="toggleAuth(true)" id="tabLogin" class="flex-1 pb-2 border-b-2 border-accent text-accent font-bold">Login</button>
-                <button onclick="toggleAuth(false)" id="tabRegister" class="flex-1 pb-2 border-b-2 border-transparent text-muted">Register</button>
+            <div class="flex border-b border-border mb-6">
+                <button onclick="toggleAuth(true)" id="tabLogin" class="flex-1 pb-2 border-b-2 border-accent text-accent font-bold text-sm">Login</button>
+                <button onclick="toggleAuth(false)" id="tabRegister" class="flex-1 pb-2 border-b-2 border-transparent text-muted text-sm">Register</button>
             </div>
             
             <div class="space-y-4">
                 <div><label>Email</label><input type="email" id="authEmail"></div>
                 <div id="passField"><label>Password</label><input type="password" id="authPass"></div>
                 
-                <button onclick="handleAuth()" id="authBtn" class="w-full bg-accent text-bg font-bold py-3 rounded-xl hover:opacity-0.9">Sign In</button>
+                <button onclick="handleAuth()" id="authBtn" class="w-full bg-accent text-bg font-bold py-3 rounded-xl hover:opacity-90">Sign In</button>
                 
-                <!-- Forgot Password Option -->
-                <div class="text-center mt-2">
+                <div class="text-center">
                     <button onclick="forgotPassword()" class="text-[10px] text-muted hover:text-accent font-bold uppercase tracking-widest">Forgot Password?</button>
                 </div>
 
@@ -73,21 +72,21 @@
                 </div>
 
                 <button onclick="loginWithGoogle()" class="w-full bg-white text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-100 transition-all text-sm">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-4 h-4"> Google Account
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-4 h-4"> Sign in with Google
                 </button>
                 <p id="authError" class="text-danger text-[10px] text-center mt-4 hidden"></p>
             </div>
         </div>
     </div>
 
-    <!-- APP CONTENT -->
+    <!-- MAIN APP -->
     <div id="appContent" class="hidden">
         <header class="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-accent rounded flex items-center justify-center text-bg font-bold text-xs">AT</div>
                 <h1 class="text-xs font-bold leading-none uppercase tracking-widest">Abay Technical & Trading s.c</h1>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 items-center">
                 <button onclick="document.getElementById('emailModal').classList.remove('hidden')" class="p-2 border border-border rounded-lg text-muted hover:text-accent">📧</button>
                 <button onclick="handleLogout()" class="text-[9px] text-muted hover:text-danger mx-2 uppercase font-bold">Logout</button>
                 <button onclick="openModal()" class="bg-accent text-bg px-4 py-1.5 rounded-lg font-bold text-xs shadow-lg">+ Add Tender</button>
@@ -95,15 +94,15 @@
         </header>
 
         <main class="max-w-7xl mx-auto px-4 mt-8 pb-12">
-            <!-- Analysis Summary -->
+            <!-- Analysis Dashboard -->
             <div id="analysisGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"></div>
-            <!-- Stats Grid -->
+            <!-- 8-Stats Grid -->
             <div id="statsGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8 text-center"></div>
-            <!-- List -->
+            <!-- Tables List -->
             <div id="tenderSections" class="space-y-8"></div>
-            <!-- Summary Table -->
+            <!-- Bottom Summary Table -->
             <section class="section-card mt-12 p-6">
-                <h3 class="text-xs font-bold text-accent uppercase tracking-widest mb-4">Monthly Summary Table</h3>
+                <h3 class="text-xs font-bold text-accent uppercase tracking-widest mb-4">Performance Summary</h3>
                 <table class="w-full text-[11px]"><tbody id="summaryTableBody" class="divide-y divide-border/30"></tbody></table>
             </section>
         </main>
@@ -128,23 +127,28 @@
                 <div id="cpoWrap" class="hidden"><label>CPO Amount</label><input type="number" id="tCPOVal"></div>
                 <div><label>Financial Value</label><input type="number" id="tVal" required></div>
                 <div><label>Status</label><select id="tStatus"><option>Pending</option><option>Participated</option><option>Won</option><option>Lost</option></select></div>
-                <div><label>Status Reporting Date</label><select id="tRepStatus"><option>Pending</option><option>Canceled</option></select></div>
+                <div><label>Reporting Status</label><select id="tRepStatus"><option>Pending</option><option>Canceled</option></select></div>
                 <div class="col-span-2"><label>Remark</label><textarea id="tRemark" rows="2"></textarea></div>
-                <div class="col-span-2 flex justify-end pt-4 border-t border-border"><button type="submit" class="bg-accent text-bg px-10 py-2 rounded-lg font-bold shadow-lg">Save Record</button></div>
+                <div class="col-span-2 flex justify-end pt-4 border-t border-border">
+                    <button type="submit" id="saveBtn" class="bg-accent text-bg px-10 py-2 rounded-lg font-bold shadow-lg transition-transform active:scale-95">Save Tender</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- EMAIL SETTINGS -->
+    <!-- NOTIFICATION MODAL -->
     <div id="emailModal" class="fixed inset-0 bg-black/90 z-[120] hidden flex items-center justify-center p-4">
         <div class="bg-card border border-border rounded-xl w-full max-w-md p-6">
             <h3 class="text-sm font-bold text-accent mb-4 uppercase tracking-widest">Gmail Notifications</h3>
             <div class="space-y-4">
-                <div><label>Your Gmail</label><input type="email" id="smtpUser"></div>
+                <div><label>Gmail Address</label><input type="email" id="smtpUser"></div>
                 <div><label>App Password</label><input type="password" id="smtpPass" placeholder="16-character code"></div>
-                <div><label>Notify Recipient</label><input type="email" id="smtpTo"></div>
+                <div><label>Recipient Email</label><input type="email" id="smtpTo"></div>
             </div>
-            <div class="flex justify-end gap-2 mt-6"><button onclick="document.getElementById('emailModal').classList.add('hidden')" class="text-xs text-muted font-bold mr-4">Close</button><button onclick="saveConfig()" class="bg-accent text-bg px-4 py-1.5 rounded text-xs font-bold">Save</button></div>
+            <div class="flex justify-end gap-2 mt-6">
+                <button onclick="document.getElementById('emailModal').classList.add('hidden')" class="text-xs text-muted font-bold mr-4">Close</button>
+                <button onclick="saveConfig()" class="bg-accent text-bg px-4 py-1.5 rounded text-xs font-bold">Save</button>
+            </div>
         </div>
     </div>
 
@@ -152,17 +156,13 @@
         let isLogin = true;
         let tenderData = { tenders: [], config: {} };
 
-        // --- PASSWORD RESET ---
+        // --- AUTH ---
         async function forgotPassword() {
             const email = document.getElementById('authEmail').value;
-            if(!email) return alert("Please type your email first in the box above.");
-            try {
-                await auth.sendPasswordResetEmail(email);
-                alert("Password reset email sent! Check your inbox.");
-            } catch (e) { alert(e.message); }
+            if(!email) return alert("Please type your email first.");
+            try { await auth.sendPasswordResetEmail(email); alert("Password reset link sent to your email!"); } catch (e) { alert(e.message); }
         }
 
-        // --- AUTH ---
         function toggleAuth(login) {
             isLogin = login;
             document.getElementById('authTitle').innerText = login ? "Abay Technical" : "Create Account";
@@ -193,17 +193,28 @@
             }
         });
 
-        // --- DATABASE ---
+        // --- DATA ---
         function initApp() {
             db.collection("tenders").onSnapshot(snap => {
                 tenderData.tenders = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 render();
+                checkDeadlines();
             });
+            const savedConfig = localStorage.getItem('abay_config');
+            if(savedConfig) tenderData.config = JSON.parse(savedConfig);
+            
+            // Listen for Electron Menu Actions
+            if(window.electronAPI) {
+                window.electronAPI.onMenuAction(a => { if(a==='save') alert("Cloud auto-saves data, local backup complete."); });
+                window.electronAPI.onExportRequest(p => {
+                    const csv = ["Customer,Contact,No,Date,Status,Value", ...tenderData.tenders.map(t => `${t.customer},${t.contact},${t.no},${t.date},${t.status},${t.value}`)].join("\n");
+                    window.electronAPI.writeCSV({ path: p, content: csv });
+                });
+            }
         }
 
         async function saveTender(e) {
             e.preventDefault();
-            // Match exactly with the database fields
             const entry = {
                 customer: document.getElementById('tName').value,
                 contact: document.getElementById('tContact').value,
@@ -221,25 +232,22 @@
                 emailed: false,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
-            
             try {
                 await db.collection("tenders").add(entry);
                 closeModal();
-            } catch (err) { alert("Save failed: " + err.message); }
+            } catch (err) { alert(err.message); }
         }
 
         function render() {
             const t = tenderData.tenders;
-            const totalCPO = t.reduce((acc, curr) => acc + (Number(curr.cpoAmount) || 0), 0);
+            const totalCPO = t.reduce((a, c) => a + (Number(c.cpoAmount) || 0), 0);
             const won = t.filter(x=>x.status==='Won').length;
 
-            // Analysis
             document.getElementById('analysisGrid').innerHTML = `
-                <div class="section-card p-5 border-l-4 border-accent"><div>TOTAL CPO (ETB)</div><div class="text-2xl font-bold text-accent">${totalCPO.toLocaleString()}</div></div>
-                <div class="section-card p-5 border-l-4 border-success"><div>WIN RATE</div><div class="text-2xl font-bold text-success">${Math.round((won/t.length || 0)*100)}%</div></div>
-                <div class="section-card p-5 border-l-4 border-warning"><div>PENDING</div><div class="text-2xl font-bold text-warning">${t.filter(x=>x.status==='Pending').length} Tenders</div></div>`;
+                <div class="section-card p-5 border-l-4 border-accent"><div>TOTAL CPO CAPITAL</div><div class="text-2xl font-bold text-accent">${totalCPO.toLocaleString()}</div></div>
+                <div class="section-card p-5 border-l-4 border-success"><div>SUCCESS RATE</div><div class="text-2xl font-bold text-success">${Math.round((won/t.length || 0)*100)}%</div></div>
+                <div class="section-card p-5 border-l-4 border-warning"><div>PENDING</div><div class="text-2xl font-bold text-warning">${t.filter(x=>x.status==='Pending').length}</div></div>`;
 
-            // Stats
             const stats = [
                 { label: 'Total', val: t.length, color: 'fg' }, { label: 'Participated', val: t.filter(x=>x.status==='Participated').length, color: 'success' },
                 { label: 'Not Part.', val: 0, color: 'muted' }, { label: 'Pending', val: t.filter(x=>x.status==='Pending').length, color: 'warning' },
@@ -248,7 +256,6 @@
             ];
             document.getElementById('statsGrid').innerHTML = stats.map(s => `<div class="bg-card border border-border p-3 rounded-xl"><div class="text-xl font-bold text-${s.color}">${s.val}</div><div class="text-[9px] uppercase font-bold text-muted mt-1">${s.label}</div></div>`).join('');
 
-            // Monthly Groups
             const groups = {};
             t.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(x => {
                 const m = new Date(x.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -268,7 +275,6 @@
                             </tr>`).join('')}
                     </tbody></table></div>`).join('');
 
-            // Summary Table
             const summary = {};
             t.forEach(x => {
                 const m = new Date(x.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -277,12 +283,28 @@
                 summary[m].val += Number(x.value) || 0;
             });
             document.getElementById('summaryTableBody').innerHTML = Object.entries(summary).map(([m, s]) => `
-                <tr><td class="py-4 font-bold text-fg">${m}</td><td class="py-4 text-center font-bold">${s.total}</td><td class="py-4 text-center text-success">${s.part}</td><td class="py-4 text-center font-bold">${s.won}</td><td class="py-4 text-right text-accent font-bold">${s.val.toLocaleString()}</td></tr>`).join('');
+                <tr><td class="py-4 font-bold text-fg">${m}</td><td class="py-4 text-center font-bold">${s.total}</td><td class="py-4 text-center text-success font-bold">${s.part}</td><td class="py-4 text-center font-bold">${s.won}</td><td class="py-4 text-right text-accent font-bold">${s.val.toLocaleString()}</td></tr>`).join('');
+        }
+
+        async function checkDeadlines() {
+            if (!tenderData.config.user || !window.electronAPI) return;
+            const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+            for (let t of tenderData.tenders) {
+                if (t.status === 'Pending' && new Date(t.date) <= tomorrow && !t.emailed) {
+                    window.electronAPI.sendEmail({ config: tenderData.config, tender: t });
+                    await db.collection("tenders").doc(t.id).update({ emailed: true });
+                }
+            }
         }
 
         function toggleCPO() { document.getElementById('cpoWrap').classList.toggle('hidden', document.getElementById('tCPO').value === 'No'); }
         function openModal() { document.getElementById('mainTenderForm').reset(); toggleCPO(); document.getElementById('tenderModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('tenderModal').classList.add('hidden'); }
+        function saveConfig() {
+            tenderData.config = { user: document.getElementById('smtpUser').value, pass: document.getElementById('smtpPass').value, to: document.getElementById('smtpTo').value };
+            localStorage.setItem('abay_config', JSON.stringify(tenderData.config));
+            document.getElementById('emailModal').classList.add('hidden');
+        }
         async function deleteTender(id) { if(confirm("Delete record?")) await db.collection("tenders").doc(id).delete(); }
     </script>
 </body>
