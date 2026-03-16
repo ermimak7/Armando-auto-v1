@@ -42,10 +42,10 @@
         .section-card { background: #1a2028; border: 1px solid #2d3640; border-radius: 0.75rem; overflow: hidden; }
         .status-won { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 1px solid #3fb950; }
         .status-pending { background: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid #d29922; }
-        .status-not-participated { background: rgba(139, 148, 158, 0.15); color: #8b949e; border: 1px solid #8b949e; }
         .side-menu { transition: transform 0.3s ease; width: 280px; }
         .side-menu.closed { transform: translateX(-100%); }
         input, select, textarea { background: #0f1419; border: 1px solid #2d3640; border-radius: 8px; padding: 10px; width: 100%; color: #e8eaed; font-size: 14px; outline: none; }
+        .month-header:hover { background: rgba(212, 168, 83, 0.05); }
     </style>
 </head>
 <body>
@@ -53,7 +53,7 @@
     <!-- AUTH SCREEN -->
     <div id="loginScreen" class="fixed inset-0 z-[300] bg-bg flex items-center justify-center p-4">
         <div class="bg-card border border-border p-6 rounded-2xl w-full max-w-md shadow-2xl text-center">
-            <div class="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center text-bg font-bold text-2xl mx-auto mb-4">AT</div>
+            <div class="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center text-bg font-bold text-2xl mx-auto mb-4 text-bg">AT</div>
             <h2 id="authTitle" class="text-2xl font-bold italic text-fg">Abay Technical</h2>
             <div class="flex border-b border-border my-6">
                 <button onclick="toggleAuth(true)" id="tabLogin" class="flex-1 pb-2 border-b-2 border-accent text-accent font-bold text-sm">Login</button>
@@ -62,7 +62,7 @@
             <div class="space-y-4">
                 <input type="email" id="authEmail" placeholder="Email Address">
                 <input type="password" id="authPass" placeholder="Password">
-                <button onclick="handleAuth()" class="w-full bg-accent text-bg font-bold py-4 rounded-xl shadow-lg hover:opacity-90">Sign In</button>
+                <button onclick="handleAuth()" class="w-full bg-accent text-bg font-bold py-4 rounded-xl shadow-lg">Sign In</button>
                 <button onclick="forgotPassword()" class="w-full text-[10px] text-muted uppercase font-bold text-center py-2">Forgot Password?</button>
             </div>
         </div>
@@ -70,95 +70,91 @@
 
     <!-- SIDE MENU -->
     <div id="sideMenu" class="side-menu closed fixed inset-y-0 left-0 z-[250] bg-card border-r border-border shadow-2xl p-6 flex flex-col">
-        <div class="flex justify-between items-center mb-10 text-fg">
-            <h2 class="font-bold text-sm tracking-widest uppercase italic">Abay Menu</h2>
+        <div class="flex justify-between items-center mb-8 text-fg">
+            <h2 class="font-bold text-sm tracking-widest uppercase italic">Menu</h2>
             <button onclick="toggleSidebar()" class="text-xl font-bold text-muted hover:text-accent">✕</button>
         </div>
-        <nav class="space-y-6 flex-1">
-            <button onclick="toggleSidebar()" class="flex items-center gap-4 text-accent font-bold w-full"><span class="text-lg">📊</span> Dashboard</button>
-            <button onclick="document.getElementById('emailModal').classList.remove('hidden'); toggleSidebar();" class="flex items-center gap-4 text-muted hover:text-fg w-full text-sm font-bold uppercase tracking-widest"><span>📧</span> Gmail Alerts</button>
+        <nav class="space-y-6 flex-1 overflow-y-auto pr-2">
+            <div>
+                <label class="text-[10px] text-muted font-bold mb-2">Display Settings</label>
+                <select id="sortDate" onchange="render()" class="bg-bg border-border text-xs py-2">
+                    <option value="asc">Sort: Oldest First</option>
+                    <option value="desc">Sort: Newest First</option>
+                </select>
+            </div>
+
+            <button onclick="toggleSidebar()" class="flex items-center gap-4 text-accent font-bold w-full text-sm uppercase">📊 Dashboard</button>
+            <button onclick="document.getElementById('emailModal').classList.remove('hidden'); toggleSidebar();" class="flex items-center gap-4 text-muted hover:text-fg w-full text-sm font-bold uppercase tracking-widest">📧 Gmail Alerts</button>
             
             <hr class="border-border">
             
             <p class="text-[10px] text-muted uppercase font-bold tracking-widest">Export Options</p>
-            <button onclick="exportExcel()" class="flex items-center gap-4 text-success font-medium w-full text-sm"><span>📗</span> Export Excel</button>
-            <button onclick="exportPDF()" class="flex items-center gap-4 text-danger font-medium w-full text-sm"><span>📕</span> Export PDF</button>
+            <button onclick="exportExcel()" class="flex items-center gap-4 text-success font-medium w-full text-sm italic">📗 Export to Excel</button>
+            <button onclick="exportPDF()" class="flex items-center gap-4 text-danger font-medium w-full text-sm italic">📕 Export to PDF</button>
 
             <hr class="border-border">
-            <button onclick="auth.signOut()" class="flex items-center gap-4 text-muted hover:text-danger w-full text-sm font-bold uppercase font-sans">🚪 Logout</button>
+            <button onclick="auth.signOut()" class="flex items-center gap-4 text-muted hover:text-danger w-full text-sm font-bold uppercase">🚪 Logout</button>
         </nav>
         
         <!-- Jeremiah Mekonnen Credit -->
         <div class="border-t border-border pt-4">
-            <p class="text-[9px] text-muted uppercase tracking-widest text-center">Developed by</p>
-            <p class="text-[11px] font-bold text-accent text-center mt-1 uppercase">Jeremiah Mekonnen</p>
+            <p class="text-[9px] text-muted uppercase tracking-widest text-center italic">Developed by</p>
+            <p class="text-[11px] font-bold text-accent text-center mt-0.5 uppercase tracking-tighter">Jeremiah Mekonnen</p>
         </div>
     </div>
 
-    <!-- MAIN APP -->
+    <!-- MAIN APP CONTENT -->
     <div id="appContent" class="hidden">
         <header class="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-4 flex-1">
-                <button onclick="toggleSidebar()" class="p-2 hover:bg-bg rounded-lg text-muted hover:text-accent">☰</button>
-                <div class="hidden md:block">
+                <button onclick="toggleSidebar()" class="p-2 hover:bg-bg rounded-lg text-muted hover:text-accent font-bold">☰</button>
+                <div class="hidden lg:block">
                     <h1 class="text-xs font-bold leading-none tracking-widest uppercase text-fg">Abay Technical & Trading s.c</h1>
                 </div>
                 <!-- Search Bar -->
                 <div class="flex-1 max-w-sm ml-4">
-                    <input type="text" id="searchBar" onkeyup="render()" placeholder="🔍 Search Customer..." class="py-1 px-3 bg-bg/50 text-xs border-border">
+                    <input type="text" id="searchBar" onkeyup="render()" placeholder="🔍 Search Customer..." class="py-1.5 px-3 bg-bg/50 text-xs border-border rounded-lg">
                 </div>
             </div>
             
             <div class="flex gap-2 items-center">
-                <!-- Sort Dropdown -->
-                <select id="sortDate" onchange="render()" class="hidden md:block bg-card border border-border text-[10px] px-2 py-1 rounded text-muted font-bold uppercase">
-                    <option value="asc">Oldest First</option>
-                    <option value="desc">Newest First</option>
-                </select>
-
-                <!-- EXPORT DROPDOWN (Header Access) -->
-                <div class="relative group">
-                    <button class="bg-card border border-border text-muted px-4 py-2 rounded-lg font-bold text-[10px] uppercase hover:text-accent transition-all">Export ▾</button>
-                    <div class="absolute right-0 top-full mt-2 w-40 bg-card border border-border rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
-                        <button onclick="exportExcel()" class="w-full text-left px-4 py-3 text-[10px] font-bold text-success hover:bg-bg border-b border-border uppercase">📗 Excel</button>
-                        <button onclick="exportPDF()" class="w-full text-left px-4 py-3 text-[10px] font-bold text-danger hover:bg-bg uppercase">📕 PDF</button>
-                    </div>
-                </div>
-
-                <button onclick="openModal()" class="bg-accent text-bg px-4 py-2 rounded-lg font-bold text-xs shadow-lg">+ Add Tender</button>
+                <button onclick="openModal()" class="bg-accent text-bg px-5 py-2 rounded-lg font-bold text-xs shadow-lg transition-transform active:scale-95">+ Add Tender</button>
             </div>
         </header>
 
         <main class="max-w-7xl mx-auto px-4 mt-6 pb-12">
             <div id="analysisGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"></div>
-            <div id="statsGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6 text-center"></div>
+            <div id="statsGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6 text-center text-fg"></div>
             
-            <!-- Collapsible Sections -->
             <div id="tenderSections" class="space-y-4"></div>
             
-            <!-- Graphics & Summary Row -->
+            <!-- Summary Table & Small Chart Row -->
             <section class="section-card mt-10 p-6">
                 <div class="flex flex-col lg:flex-row justify-between items-start gap-8">
-                    <div class="w-full lg:w-3/5">
-                        <h3 class="text-xs font-bold text-accent uppercase tracking-widest mb-4 italic underline decoration-accent/30">Monthly Performance Summary</h3>
+                    <!-- Table -->
+                    <div class="w-full lg:w-3/4">
+                        <h3 class="text-xs font-bold text-accent uppercase tracking-widest mb-4 italic underline decoration-accent/30 underline-offset-4">Monthly Summary Analysis</h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-[11px]"><tbody id="summaryTableBody" class="divide-y divide-border/30"></tbody></table>
                         </div>
                     </div>
-                    <div class="w-full lg:w-2/5 bg-bg/50 rounded-xl p-4 border border-border">
-                        <h4 class="text-[10px] font-bold text-muted uppercase text-center mb-4 tracking-tighter">Financial Opportunity Trend</h4>
-                        <canvas id="monthlyChart" height="200"></canvas>
+                    <!-- Small Chart -->
+                    <div class="w-full lg:w-1/4 bg-bg/40 rounded-xl p-4 border border-border">
+                        <h4 class="text-[9px] font-bold text-muted uppercase text-center mb-3 tracking-tighter">Value Trend</h4>
+                        <div style="height: 120px; position: relative;">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- TENDER MODAL -->
+    <!-- MODAL -->
     <div id="tenderModal" class="fixed inset-0 bg-black/95 backdrop-blur-sm z-[310] hidden flex items-center justify-center p-2 md:p-4">
-        <div class="bg-card border border-border rounded-xl w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl">
+        <div class="bg-card border border-border rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
             <div class="px-6 py-4 border-b border-border flex justify-between items-center sticky top-0 bg-card z-10 text-fg">
-                <h3 class="font-bold text-lg" id="modalTitle">New Tender Entry</h3>
+                <h3 class="font-bold text-lg" id="modalTitle">Tender Entry</h3>
                 <button onclick="closeModal()" class="text-muted hover:text-fg text-2xl">✕</button>
             </div>
             <form onsubmit="saveTender(event)" id="tenderForm" class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -188,25 +184,23 @@
                 <div><label>Deadline</label><input type="date" id="tDate" required></div>
                 <div><label>CPO Required?</label><select id="tCPO" onchange="toggleCPO()"><option value="No">No</option><option value="Yes">Yes</option></select></div>
                 <div id="cpoWrap" class="hidden"><label>CPO Amount</label><input type="number" id="tCPOVal"></div>
-                <div><label>Financial Value</label><input type="number" id="tVal" required></div>
-                
+                <div><label>Value (ETB)</label><input type="number" id="tVal" required></div>
                 <div><label>Main Status</label><select id="tStatus"><option>Pending</option><option>Participated</option><option>Not Participated</option><option>Won</option><option>Lost</option></select></div>
                 <div><label>Reporting Status</label><select id="tRepStatus"><option>Pending</option><option>Not Participated</option><option>Canceled</option></select></div>
-                
                 <div class="md:col-span-2"><label>Remark</label><textarea id="tRemark" rows="2"></textarea></div>
                 <div class="md:col-span-2 pt-4"><button type="submit" class="w-full bg-accent text-bg font-bold py-4 rounded-xl uppercase tracking-widest shadow-lg">Save Record</button></div>
             </form>
         </div>
     </div>
 
-    <!-- EMAIL MODAL -->
+    <!-- NOTIFICATION MODAL -->
     <div id="emailModal" class="fixed inset-0 bg-black/95 z-[320] hidden flex items-center justify-center p-4">
         <div class="bg-card border border-border rounded-xl w-full max-w-md p-6">
-            <h3 class="text-sm font-bold text-accent mb-4 uppercase text-center tracking-widest underline underline-offset-4">Gmail Notifications</h3>
-            <div class="space-y-4 text-fg">
-                <input type="email" id="smtpUser" placeholder="Your Gmail Address">
-                <input type="password" id="smtpPass" placeholder="Gmail App Password (16 chars)">
-                <input type="email" id="smtpTo" placeholder="Alert Recipient Email">
+            <h3 class="text-sm font-bold text-accent mb-4 uppercase tracking-widest text-center">Gmail Setup</h3>
+            <div class="space-y-4">
+                <input type="email" id="smtpUser" placeholder="Gmail Address">
+                <input type="password" id="smtpPass" placeholder="App Password">
+                <input type="email" id="smtpTo" placeholder="Notify Recipient">
             </div>
             <div class="flex justify-end mt-6 gap-4">
                 <button onclick="document.getElementById('emailModal').classList.add('hidden')" class="text-xs text-muted font-bold">CANCEL</button>
@@ -218,7 +212,7 @@
     <script>
         let tenderData = { tenders: [], config: {} }, mainChart = null;
 
-        // --- UI UTILS ---
+        // UI UTILS
         function toggleSidebar() { document.getElementById('sideMenu').classList.toggle('closed'); }
         function toggleCPO() { document.getElementById('cpoWrap').classList.toggle('hidden', document.getElementById('tCPO').value === 'No'); }
         function toggleVehicleFields() { document.getElementById('vDetailWrap').classList.toggle('hidden', document.getElementById('tProd').value !== 'Vehicle Purchase'); }
@@ -226,12 +220,12 @@
         function openModal() { document.getElementById('editId').value=''; document.getElementById('tenderForm').reset(); toggleCPO(); toggleVehicleFields(); document.getElementById('tenderModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('tenderModal').classList.add('hidden'); }
 
-        // --- AUTH ---
+        // AUTH
         async function handleAuth() { const e = document.getElementById('authEmail').value, p = document.getElementById('authPass').value; try { await auth.signInWithEmailAndPassword(e, p); } catch(err) { alert(err.message); } }
         async function forgotPassword() { const e = document.getElementById('authEmail').value; if(e) await auth.sendPasswordResetEmail(e); }
         auth.onAuthStateChanged(user => { if (user) { document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('appContent').classList.remove('hidden'); initApp(); } });
 
-        // --- APP LOGIC ---
+        // APP
         function initApp() { 
             db.collection("tenders").onSnapshot(snap => { 
                 tenderData.tenders = snap.docs.map(doc => ({id: doc.id, ...doc.data()})); 
@@ -275,16 +269,10 @@
             const sort = document.getElementById('sortDate').value;
             
             let filtered = tenderData.tenders.filter(t => t.customer.toLowerCase().includes(search));
-            
-            // --- OLDEST FIRST SORTING ---
             filtered.sort((a,b) => sort === 'desc' ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date));
 
             const totalCPO = filtered.reduce((a,c)=>a+(Number(c.cpoAmount)||0),0), won = filtered.filter(x=>x.status==='Won').length;
-            
-            document.getElementById('analysisGrid').innerHTML = `
-                <div class="section-card p-5 border-l-4 border-accent"><div>TOTAL CPO (ETB)</div><div class="text-2xl font-bold text-accent">${totalCPO.toLocaleString()}</div></div>
-                <div class="section-card p-5 border-l-4 border-success"><div>SUCCESS RATE</div><div class="text-2xl font-bold text-success">${Math.round((won/filtered.length || 0)*100)}%</div></div>
-                <div class="section-card p-5 border-l-4 border-warning"><div>PENDING ACTION</div><div class="text-2xl font-bold text-warning">${filtered.filter(x=>x.status==='Pending').length} Tenders</div></div>`;
+            document.getElementById('analysisGrid').innerHTML = `<div class="section-card p-5 border-l-4 border-accent"><div>TOTAL CPO</div><div class="text-2xl font-bold text-accent">${totalCPO.toLocaleString()}</div></div><div class="section-card p-5 border-l-4 border-success"><div>SUCCESS RATE</div><div class="text-2xl font-bold text-success">${Math.round((won/filtered.length || 0)*100)}%</div></div><div class="section-card p-5 border-l-4 border-warning"><div>PENDING</div><div class="text-2xl font-bold text-warning">${filtered.filter(x=>x.status==='Pending').length} Tenders</div></div>`;
             
             const stats = [{label:'Total',val:filtered.length,color:'fg'},{label:'Participated',val:filtered.filter(x=>x.status==='Participated').length,color:'success'},{label:'Not Part.',val:filtered.filter(x=>x.status==='Not Participated').length,color:'muted'},{label:'Pending',val:filtered.filter(x=>x.status==='Pending').length,color:'warning'},{label:'Won',val:won,color:'success'},{label:'Lost',val:filtered.filter(x=>x.status==='Lost').length,color:'danger'},{label:'Qty',val:filtered.reduce((a,c)=>a+(Number(c.qty)||0),0),color:'muted'}];
             document.getElementById('statsGrid').innerHTML = stats.map(s => `<div class="bg-card border border-border p-3 rounded-xl"><div class="text-xl font-bold text-${s.color}">${s.val}</div><div class="text-[9px] uppercase font-bold text-muted mt-1 tracking-tighter">${s.label}</div></div>`).join('');
@@ -294,12 +282,12 @@
                 <div class="section-card">
                     <div onclick="toggleMonth('month-${idx}')" class="month-header px-6 py-4 cursor-pointer flex justify-between items-center hover:bg-white/5">
                         <h3 class="font-bold text-xs uppercase tracking-widest text-accent italic">${m}</h3>
-                        <span class="text-[10px] text-muted font-bold uppercase tracking-tight">${items.length} records in this month ▾</span>
+                        <span class="text-[10px] text-muted font-bold uppercase tracking-tight">${items.length} records ▾</span>
                     </div>
                     <div id="month-${idx}" class="overflow-x-auto hidden">
                         <table class="w-full text-[11px] min-w-[600px] border-t border-border/30">
                             <tbody class="divide-y divide-border/30">
-                                ${items.map(x => `<tr class="hover:bg-bg/10"><td class="px-6 py-4"><b>${x.customer}</b><br><span class="text-[9px] opacity-50 uppercase tracking-tighter">${x.product}</span></td><td class="px-4 py-4 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-bold uppercase status-${x.status.toLowerCase().replace(/ /g,'-')}">${x.status}</span></td><td class="px-4 py-4 text-right font-bold text-accent">${Number(x.value).toLocaleString()}</td><td class="px-6 py-4 text-right"><button onclick="editTender('${x.id}')" class="mr-4 text-muted hover:text-accent font-bold">✎</button><button onclick="deleteTender('${x.id}')" class="text-muted hover:text-danger font-bold">🗑</button></td></tr>`).join('')}
+                                ${items.map(x => `<tr class="hover:bg-bg/10"><td class="px-6 py-4"><b>${x.customer}</b><br><span class="text-[9px] opacity-50 uppercase tracking-tighter">${x.product}</span></td><td class="px-4 py-4 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-bold uppercase status-${x.status.toLowerCase().replace(/ /g,'-')}">${x.status}</span></td><td class="px-4 py-4 text-right font-bold text-accent">${Number(x.value).toLocaleString()}</td><td class="px-6 py-4 text-right"><button onclick="editTender('${x.id}')" class="mr-4 text-muted hover:text-accent font-bold text-sm">✎</button><button onclick="deleteTender('${x.id}')" class="text-muted hover:text-danger font-bold text-sm">🗑</button></td></tr>`).join('')}
                             </tbody>
                         </table>
                     </div>
@@ -315,12 +303,11 @@
                 summary[m].val += Number(x.value)||0; 
             });
             
-            document.getElementById('summaryTableBody').innerHTML = Object.entries(summary).map(([m,s]) => `<tr><td class="py-4 font-bold text-fg uppercase">${m}</td><td class="py-4 text-center font-bold text-lg">${s.total}</td><td class="py-4 text-center text-info font-bold">${s.part}</td><td class="py-4 text-center text-success font-bold">${s.won}</td><td class="py-4 text-right text-accent font-bold">${s.val.toLocaleString()}</td></tr>`).join('');
+            document.getElementById('summaryTableBody').innerHTML = Object.entries(summary).map(([m,s]) => `<tr><td class="py-4 font-bold text-fg uppercase italic">${m}</td><td class="py-4 text-center font-bold text-lg text-fg">${s.total}</td><td class="py-4 text-center text-info font-bold">${s.part}</td><td class="py-4 text-center text-success font-bold">${s.won}</td><td class="py-4 text-right text-accent font-bold">${s.val.toLocaleString()}</td></tr>`).join('');
             
             renderChart(summary);
         }
 
-        // --- VISUAL CHART RESTORED ---
         function renderChart(summaryData) {
             const ctx = document.getElementById('monthlyChart').getContext('2d');
             const labels = Object.keys(summaryData).reverse();
@@ -330,25 +317,19 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Revenue Potential (ETB)',
                         data: labels.map(l => summaryData[l].val),
                         borderColor: '#d4a853',
                         backgroundColor: 'rgba(212, 168, 83, 0.1)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#d4a853'
+                        pointRadius: 3
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: {
-                        y: { display: false },
-                        x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 9 } } }
-                    }
+                    scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 8 } } } }
                 }
             });
         }
@@ -367,7 +348,7 @@
             document.getElementById('tStatus').value = t.status;
             document.getElementById('tRepStatus').value = t.repStatus || 'Pending';
             document.getElementById('tRemark').value = t.remark || '';
-            document.getElementById('modalTitle').innerText = "Update Tender Record";
+            document.getElementById('modalTitle').innerText = "Update Record";
             toggleCPO(); toggleVehicleFields();
             document.getElementById('tenderModal').classList.remove('hidden');
         }
@@ -376,12 +357,11 @@
             tenderData.config = { user: document.getElementById('smtpUser').value, pass: document.getElementById('smtpPass').value, to: document.getElementById('smtpTo').value };
             localStorage.setItem('abay_config', JSON.stringify(tenderData.config));
             document.getElementById('emailModal').classList.add('hidden');
-            alert("Settings Saved!");
         }
 
-        async function deleteTender(id) { if(confirm("Permanently delete record?")) await db.collection("tenders").doc(id).delete(); }
-        function exportExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(tenderData.tenders), "Tenders"), "Abay_Report.xlsx"); }
-        function exportPDF() { const doc = new jspdf.jsPDF('l', 'pt'); doc.autoTable({ head: [['Customer', 'No', 'Value', 'Status', 'Date']], body: tenderData.tenders.map(t => [t.customer, t.no, t.value, t.status, t.date]) }); doc.save("Abay_Report.pdf"); }
+        async function deleteTender(id) { if(confirm("Permanently delete?")) await db.collection("tenders").doc(id).delete(); }
+        function exportExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(tenderData.tenders), "Tenders"), "Abay_Technical_Report.xlsx"); }
+        function exportPDF() { const doc = new jspdf.jsPDF('l', 'pt'); doc.autoTable({ head: [['Customer', 'No', 'Value', 'Status', 'Date']], body: tenderData.tenders.map(t => [t.customer, t.no, t.value, t.status, t.date]) }); doc.save("Abay_Technical_Report.pdf"); }
     </script>
 </body>
 </html>
